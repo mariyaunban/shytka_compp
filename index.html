@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Секретный тест</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e2e;
+            color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 { margin-bottom: 30px; max-width: 600px; }
+        
+        /* ВОТ ТУТ НАХОДИТСЯ ЭТОТ CSS */
+        #result-img {
+            display: none;
+            max-width: 600px;
+            max-height: 600px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            object-fit: cover;
+        }
+        
+        .buttons { display: flex; gap: 20px; justify-content: center; align-items: center; }
+        button {
+            padding: 15px 30px;
+            font-size: 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.95); }
+        #yes { background: #2ecc71; color: white; }
+        #no { background: #e74c3c; color: white; transition: 0.15s; }
+    </style>
+</head>
+<body>
+    <img id="result-img" src="" alt="">
+    <h1 id="question">Загрузка...</h1>
+    <div class="buttons" id="btn-container">
+        <button id="yes">Да</button>
+        <button id="no">Нет</button>
+    </div>
+
+    <script>
+        const steps = {
+            start: { text: "Готов пройти секретный тест? 👀", yesNext: "q2", noNext: "areYouSure", runaway: false },
+            areYouSure: { text: "В смысле нет?! А если подумать хорошо? 🤨", yesNext: "q2", noNext: "q2", runaway: true },
+            q2: { text: "Знаком ли ты с Апоченской школой?", yesNext: "q3", noNext: "q3", runaway: true },
+            q3: { text: "Ты мужчина???", yesNext: "win", noNext: "greedy", runaway: false },
+            greedy: { text: "Ты женщина, ага тогда, фанатела ли ты по Саше Войнову?", yesNext: "l1", noNext: "l2", runaway: false },
+            win: { text: "Ты любишь машу?)?", yesNext: "s1", noNext: "s2" },
+            
+            // ПРОВЕРЬ ЭТО ИМЯ ФАЙЛА (anay.jpg):
+            l1: { text: "тогда ты Аняя", img: "ВВВВВВВВВВВВВВВВВ/anay.jpg", final: true },
+            
+            l2: { text: "Вы играли палку в театре??", yesNext: "l3", noNext: "l4" },
+            l3: { text: "тогда ты Женяя", img: "ВВВВВВВВВВВВВВВВВ/genay.jpg", final: true },
+            l4: { text: "Вы похожи на лису?", yesNext: "l5", noNext: "l6" },
+            l5: { text: "тогда ты Машаа", img: "ВВВВВВВВВВВВВВВВВ/masha.jpg", final: true },
+            l6: { text: "Вы с припиздью?)", yesNext: "l7", noNext: "l8" },
+            l7: { text: "тогда ты Анна Сотникова", img: "ВВВВВВВВВВВВВВВВВ/shluha.jpg", final: true  },
+            l8: { text: "Вы общая девушка?", yesNext: "l9", noNext: "l10" },
+            l9: { text: "тогда ты Тая", img: "ВВВВВВВВВВВВВВВВВ/taya.jpg", final: true  },
+            l10: { text: "ну слушай я хуй знаю, что ты за чудовище)", final: true },
+            s1: { text: "тогда ты Тимаафееййй",  img: "ВВВВВВВВВВВВВВВВВ/tima.jpg", final: true},
+            s2: { text: "Бросали ли вы тик ток, маты, и опастные гонки РАДИ Таи?", yesNext: "s3", noNext: "s4" },
+            s3: { text: "тогда ты Александр",  img: "ВВВВВВВВВВВВВВВВВ/sasha.jpg", final: true },
+            s4: { text: "У вас тупорылый юмор?", yesNext: "s5", noNext: "s6" },
+            s5: { text: "тогда ты Михаил", img: "ВВВВВВВВВВВВВВВВВ/misha.jpg", final: true },
+            s6: { text: "Вы баскетболист и подлокотник??", yesNext: "s7", noNext: "s8" },
+            s7: { text: "Тогда вы хуй знает как его зовут короче))",img: "ВВВВВВВВВВВВВВВВВ/dsfklmslkdjflksdjf.jpg", final: true },
+            s8: { text: "вы мальчик из пинтереста", yesNext: "s9", noNext: "s10" },
+            s9: { text: "Тогда вы Счастливый Захарка",img: "ВВВВВВВВВВВВВВВВВ/ya.jpg", final: true },
+            s10: { text: "если ты везде отвечал нет ты пошел нахуй", final: true}
+        };
+
+        const questionEl = document.getElementById('question');
+        const imgEl = document.getElementById('result-img');
+        const yesBtn = document.getElementById('yes');
+        const noBtn = document.getElementById('no');
+        const btnContainer = document.getElementById('btn-container');
+
+        let currentStep = 'start';
+        let isRunaway = false;
+
+        function renderStep(stepKey) {
+            currentStep = stepKey;
+            const step = steps[stepKey];
+            
+            questionEl.textContent = step.text;
+            
+            if (step.img) {
+                imgEl.src = step.img;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            noBtn.style.position = 'static';
+            isRunaway = step.runaway || false;
+
+            if (step.final) {
+                btnContainer.style.display = 'none';
+            } else {
+                btnContainer.style.display = 'flex';
+            }
+        }
+
+        noBtn.addEventListener('mouseover', () => {
+            if (!isRunaway) return;
+            noBtn.style.position = 'absolute';
+            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth - 20);
+            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight - 20);
+            noBtn.style.left = Math.max(10, x) + 'px';
+            noBtn.style.top = Math.max(10, y) + 'px';
+        });
+
+        yesBtn.addEventListener('click', () => {
+            const next = steps[currentStep].yesNext;
+            if (next) renderStep(next);
+        });
+
+        noBtn.addEventListener('click', () => {
+            if (isRunaway) return;
+            const next = steps[currentStep].noNext;
+            if (next) renderStep(next);
+        });
+
+        renderStep('start');
+    </script>
+</body>
+</html>
